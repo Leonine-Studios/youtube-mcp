@@ -1,6 +1,6 @@
 # YouTube MCP Server
 
-[![smithery badge](https://smithery.ai/badge/@sfiorini/youtube)](https://smithery.ai/server/@sfiorini/youtube)
+[![smithery badge](https://smithery.ai/badge/@sfiorini/youtube-mcp)](https://smithery.ai/server/@sfiorini/youtube-mcp)
 
 A Model Context Protocol (MCP) server implementation for YouTube, enabling AI language models to interact with YouTube content through a standardized interface.
 
@@ -79,25 +79,11 @@ Add this to your Claude Desktop configuration:
 
 ### Installing via Smithery
 
-To install YouTube MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@sfiorini/youtube):
+To install YouTube MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@sfiorini/youtube-mcp):
 
 ```bash
-npx -y @smithery/cli install @sfiorini/youtube --client claude
+npx -y @smithery/cli@latest install @sfiorini/youtube-mcp --client claude
 ```
-
-**Smithery Deployment Status**: ✅ Ready for deployment
-
-The project is now Smithery-compatible with:
-- ✅ TypeScript runtime configuration
-- ✅ Proper `createServer` function export
-- ✅ Configuration schema for API keys
-- ✅ All tools registered with proper schemas
-- ✅ Smithery build integration
-
-Deploy to Smithery:
-1. Push code to GitHub
-2. Visit https://smithery.ai/new
-3. Connect your repository and deploy
 
 ## Configuration
 
