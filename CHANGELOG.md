@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2025-11-21
+
+### Fixed
+
+- **BREAKING**: Corrected Smithery deployment architecture to use proper pattern
+- **BREAKING**: Moved `createServer` function from `smithery-index.ts` to `src/index.ts`
+
+### Changed
+
+- **BREAKING**: Implemented proper Smithery pattern with `export default createServer`
+- **BREAKING**: Replaced JSON Schema format with Zod schemas for MCP SDK compatibility
+- Simplified server architecture by following official Smithery specification
+- Enhanced error handling and type safety throughout the codebase
+
 ## [0.1.2] - 2025-11-20
 
 ### Added

@@ -15,7 +15,7 @@ export const configSchema = z.object({
 export default function createServer({ config }: { config?: z.infer<typeof configSchema> }) {
     const server = new McpServer({
         name: 'youtube-mcp',
-        version: '0.1.2',
+        version: '0.1.3',
     });
 
     const videoService = new VideoService();
