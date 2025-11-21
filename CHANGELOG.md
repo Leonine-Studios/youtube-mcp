@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced manual schema validation with `zod` type-safe schemas
 - Dynamic version management from `package.json`
 - Updated all video service methods to return enhanced structured responses
+- Fixed smithery-index.ts TypeScript errors with modern schema approach
 
 ### Improved
 
