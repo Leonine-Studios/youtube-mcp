@@ -31,15 +31,28 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
         process.env.YOUTUBE_TRANSCRIPT_LANG = config.youtubeTranscriptLang;
     }
 
-    // Register tools using the original working pattern from f61b77f
+    // Register tools using the exact JSON Schema format from the working version f61b77f
     server.registerTool("videos_getVideo", {
         title: "Get Video Details",
         description: "Get detailed information about a YouTube video including URL",
-        inputSchema: z.object({
-            videoId: z.string().describe("The YouTube video ID"),
-            parts: z.array(z.string()).optional().describe("Parts of the video to retrieve"),
-        }),
-    }, async ({ videoId, parts }) => {
+        inputSchema: {
+            type: "object",
+            properties: {
+                videoId: {
+                    type: "string",
+                    description: "The YouTube video ID",
+                },
+                parts: {
+                    type: "array",
+                    description: "Parts of the video to retrieve",
+                    items: {
+                        type: "string",
+                    },
+                },
+            },
+            required: ["videoId"],
+        },
+    }, async ({ videoId, parts }: { videoId: string; parts?: string[] }) => {
         const result = await videoService.getVideo({ videoId, parts });
         return {
             content: [{
@@ -52,10 +65,20 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
     server.registerTool("videos_searchVideos", {
         title: "Search Videos",
         description: "Search for videos on YouTube and return results with URLs",
-        inputSchema: z.object({
-            query: z.string().describe("Search query"),
-            maxResults: z.number().optional().describe("Maximum number of results to return"),
-        }),
+        inputSchema: {
+            type: "object",
+            properties: {
+                query: {
+                    type: "string",
+                    description: "Search query",
+                },
+                maxResults: {
+                    type: "number",
+                    description: "Maximum number of results to return",
+                },
+            },
+            required: ["query"],
+        },
     }, async ({ query, maxResults }) => {
         const result = await videoService.searchVideos({ query, maxResults });
         return {
@@ -69,10 +92,20 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
     server.registerTool("transcripts_getTranscript", {
         title: "Get Video Transcript",
         description: "Get the transcript of a YouTube video",
-        inputSchema: z.object({
-            videoId: z.string().describe("The YouTube video ID"),
-            language: z.string().optional().describe("Language code for the transcript"),
-        }),
+        inputSchema: {
+            type: "object",
+            properties: {
+                videoId: {
+                    type: "string",
+                    description: "The YouTube video ID",
+                },
+                language: {
+                    type: "string",
+                    description: "Language code for the transcript",
+                },
+            },
+            required: ["videoId"],
+        },
     }, async ({ videoId, language }) => {
         const result = await transcriptService.getTranscript({ videoId, language });
         return {
@@ -86,9 +119,16 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
     server.registerTool("channels_getChannel", {
         title: "Get Channel Information",
         description: "Get information about a YouTube channel",
-        inputSchema: z.object({
-            channelId: z.string().describe("The YouTube channel ID"),
-        }),
+        inputSchema: {
+            type: "object",
+            properties: {
+                channelId: {
+                    type: "string",
+                    description: "The YouTube channel ID",
+                },
+            },
+            required: ["channelId"],
+        },
     }, async ({ channelId }) => {
         const result = await channelService.getChannel({ channelId });
         return {
@@ -102,10 +142,20 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
     server.registerTool("channels_listVideos", {
         title: "List Channel Videos",
         description: "Get videos from a specific channel",
-        inputSchema: z.object({
-            channelId: z.string().describe("The YouTube channel ID"),
-            maxResults: z.number().optional().describe("Maximum number of results to return"),
-        }),
+        inputSchema: {
+            type: "object",
+            properties: {
+                channelId: {
+                    type: "string",
+                    description: "The YouTube channel ID",
+                },
+                maxResults: {
+                    type: "number",
+                    description: "Maximum number of results to return",
+                },
+            },
+            required: ["channelId"],
+        },
     }, async ({ channelId, maxResults }) => {
         const result = await channelService.listVideos({ channelId, maxResults });
         return {
@@ -119,9 +169,16 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
     server.registerTool("playlists_getPlaylist", {
         title: "Get Playlist Information",
         description: "Get information about a YouTube playlist",
-        inputSchema: z.object({
-            playlistId: z.string().describe("The YouTube playlist ID"),
-        }),
+        inputSchema: {
+            type: "object",
+            properties: {
+                playlistId: {
+                    type: "string",
+                    description: "The YouTube playlist ID",
+                },
+            },
+            required: ["playlistId"],
+        },
     }, async ({ playlistId }) => {
         const result = await playlistService.getPlaylist({ playlistId });
         return {
@@ -135,10 +192,20 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
     server.registerTool("playlists_getPlaylistItems", {
         title: "Get Playlist Items",
         description: "Get videos in a YouTube playlist",
-        inputSchema: z.object({
-            playlistId: z.string().describe("The YouTube playlist ID"),
-            maxResults: z.number().optional().describe("Maximum number of results to return"),
-        }),
+        inputSchema: {
+            type: "object",
+            properties: {
+                playlistId: {
+                    type: "string",
+                    description: "The YouTube playlist ID",
+                },
+                maxResults: {
+                    type: "number",
+                    description: "Maximum number of results to return",
+                },
+            },
+            required: ["playlistId"],
+        },
     }, async ({ playlistId, maxResults }) => {
         const result = await playlistService.getPlaylistItems({ playlistId, maxResults });
         return {
