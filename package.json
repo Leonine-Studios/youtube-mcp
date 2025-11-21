@@ -4,7 +4,7 @@
   "description": "YouTube MCP Server Implementation",
   "type": "module",
   "main": "dist/index.js",
-  "module": "./src/smithery-index.ts",
+  "module": "./src/index.ts",
   "bin": {
     "youtube-mcp": "dist/cli.js"
   },
