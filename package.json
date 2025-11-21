@@ -1,6 +1,6 @@
 {
   "name": "@sfiorini/youtube-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "YouTube MCP Server Implementation",
   "type": "module",
   "main": "dist/index.js",
