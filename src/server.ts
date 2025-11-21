@@ -6,7 +6,7 @@ import { TranscriptService } from './services/transcript.js';
 import { PlaylistService } from './services/playlist.js';
 import { ChannelService } from './services/channel.js';
 
-const packageVersion = '0.1.6';
+const packageVersion = '0.1.7';
 
 export async function startMcpServer() {
     const server = new McpServer({
@@ -29,7 +29,12 @@ export async function startMcpServer() {
                 videoId: z.string().describe('The YouTube video ID'),
                 parts: z.array(z.string()).optional().describe('Parts of the video to retrieve'),
             },
-            outputSchema: z.any() // Using any since the result structure varies
+            outputSchema: z.object({
+            content: z.array(z.object({
+                type: z.string(),
+                text: z.string()
+            }))
+        })
         },
         async ({ videoId, parts }) => {
             const result = await videoService.getVideo({ videoId, parts });
@@ -51,7 +56,12 @@ export async function startMcpServer() {
                 query: z.string().describe('Search query'),
                 maxResults: z.number().optional().describe('Maximum number of results to return'),
             },
-            outputSchema: z.any()
+            outputSchema: z.object({
+            content: z.array(z.object({
+                type: z.string(),
+                text: z.string()
+            }))
+        })
         },
         async ({ query, maxResults }) => {
             const result = await videoService.searchVideos({ query, maxResults });
@@ -74,7 +84,12 @@ export async function startMcpServer() {
                 videoId: z.string().describe('The YouTube video ID'),
                 language: z.string().optional().describe('Language code for the transcript'),
             },
-            outputSchema: z.any()
+            outputSchema: z.object({
+            content: z.array(z.object({
+                type: z.string(),
+                text: z.string()
+            }))
+        })
         },
         async ({ videoId, language }) => {
             const result = await transcriptService.getTranscript({ videoId, language });
@@ -96,7 +111,12 @@ export async function startMcpServer() {
             inputSchema: {
                 channelId: z.string().describe('The YouTube channel ID'),
             },
-            outputSchema: z.any()
+            outputSchema: z.object({
+            content: z.array(z.object({
+                type: z.string(),
+                text: z.string()
+            }))
+        })
         },
         async ({ channelId }) => {
             const result = await channelService.getChannel({ channelId });
@@ -118,7 +138,12 @@ export async function startMcpServer() {
                 channelId: z.string().describe('The YouTube channel ID'),
                 maxResults: z.number().optional().describe('Maximum number of results to return'),
             },
-            outputSchema: z.any()
+            outputSchema: z.object({
+            content: z.array(z.object({
+                type: z.string(),
+                text: z.string()
+            }))
+        })
         },
         async ({ channelId, maxResults }) => {
             const result = await channelService.listVideos({ channelId, maxResults });
@@ -140,7 +165,12 @@ export async function startMcpServer() {
             inputSchema: {
                 playlistId: z.string().describe('The YouTube playlist ID'),
             },
-            outputSchema: z.any()
+            outputSchema: z.object({
+            content: z.array(z.object({
+                type: z.string(),
+                text: z.string()
+            }))
+        })
         },
         async ({ playlistId }) => {
             const result = await playlistService.getPlaylist({ playlistId });
@@ -162,7 +192,12 @@ export async function startMcpServer() {
                 playlistId: z.string().describe('The YouTube playlist ID'),
                 maxResults: z.number().optional().describe('Maximum number of results to return'),
             },
-            outputSchema: z.any()
+            outputSchema: z.object({
+            content: z.array(z.object({
+                type: z.string(),
+                text: z.string()
+            }))
+        })
         },
         async ({ playlistId, maxResults }) => {
             const result = await playlistService.getPlaylistItems({ playlistId, maxResults });
