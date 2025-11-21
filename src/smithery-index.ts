@@ -1,8 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { createStatelessServer } from '@smithery/sdk/server/stateless.js';
 import { z } from 'zod';
 import { createRequire } from 'node:module';
-import express from 'express';
 import { VideoService } from './services/video.js';
 import { TranscriptService } from './services/transcript.js';
 import { PlaylistService } from './services/playlist.js';
@@ -17,15 +16,10 @@ export const configSchema = z.object({
 const require = createRequire(import.meta.url);
 const packageVersion = require('../../package.json').version;
 
-// Create the MCP server instance once
-const mcpServer = new McpServer({
-    name: 'youtube-mcp',
-    version: packageVersion,
-});
+export default function createServer({ config }: { config?: z.infer<typeof configSchema> }) {
+    console.log(`[${new Date().toISOString()}] Starting YouTube MCP server initialization`);
 
-// Initialize services and register tools
-function initializeServer(config?: z.infer<typeof configSchema>) {
-    // Set environment variables from config
+    // Initialize environment variables from config
     if (config?.youtubeApiKey) {
         process.env.YOUTUBE_API_KEY = config.youtubeApiKey;
     }
@@ -33,6 +27,13 @@ function initializeServer(config?: z.infer<typeof configSchema>) {
         process.env.YOUTUBE_TRANSCRIPT_LANG = config.youtubeTranscriptLang;
     }
 
+    // Create MCP server instance
+    const mcpServer = new McpServer({
+        name: 'youtube-mcp',
+        version: packageVersion,
+    });
+
+    // Initialize services
     const videoService = new VideoService();
     const transcriptService = new TranscriptService();
     const playlistService = new PlaylistService();
@@ -190,104 +191,12 @@ function initializeServer(config?: z.infer<typeof configSchema>) {
             };
         }
     );
+
+    console.log(`[${new Date().toISOString()}] MCP server initialization completed`);
+
+    // Return the MCP server instance (not the express app)
+    return mcpServer.server;
 }
 
-export default function createServer({ config }: { config?: z.infer<typeof configSchema> }) {
-    const initStartTime = Date.now();
-    console.log(`[${new Date().toISOString()}] Starting YouTube MCP server initialization`);
-
-    // Initialize the server with config
-    initializeServer(config);
-    console.log(`[${new Date().toISOString()}] MCP server initialization completed in ${Date.now() - initStartTime}ms`);
-
-    // Create Express app for HTTP transport
-    const app = express();
-
-    // Add request logging middleware
-    app.use((req, _res, next) => {
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - ${req.ip}`);
-        next();
-    });
-
-    app.use(express.json());
-
-    // MCP endpoint
-    app.post('/mcp', async (req, res) => {
-        const startTime = Date.now();
-        console.log(`[${new Date().toISOString()}] MCP request received`);
-
-        try {
-            // Create a new transport for each request (stateless)
-            const transport = new StreamableHTTPServerTransport({
-                sessionIdGenerator: undefined,
-                enableJsonResponse: true
-            });
-
-            res.on('close', () => {
-                transport.close();
-                console.log(`[${new Date().toISOString()}] Transport closed after ${Date.now() - startTime}ms`);
-            });
-
-            // Add timeout handling
-            const timeoutMs = 30000; // 30 seconds
-            const timeoutId = setTimeout(() => {
-                if (!res.headersSent) {
-                    console.error(`[${new Date().toISOString()}] MCP request timeout after ${timeoutMs}ms`);
-                    res.status(408).json({
-                        jsonrpc: '2.0',
-                        error: {
-                            code: -32603,
-                            message: 'Request timeout'
-                        },
-                        id: req.body?.id || null
-                    });
-                }
-            }, timeoutMs);
-
-            await mcpServer.connect(transport);
-            console.log(`[${new Date().toISOString()}] MCP server connected in ${Date.now() - startTime}ms`);
-
-            await transport.handleRequest(req, res, req.body);
-
-            clearTimeout(timeoutId);
-            console.log(`[${new Date().toISOString()}] MCP request completed in ${Date.now() - startTime}ms`);
-        } catch (error) {
-            console.error(`[${new Date().toISOString()}] Error handling MCP request after ${Date.now() - startTime}ms:`, error);
-            if (!res.headersSent) {
-                res.status(500).json({
-                    jsonrpc: '2.0',
-                    error: {
-                        code: -32603,
-                        message: error instanceof Error ? error.message : 'Internal server error'
-                    },
-                    id: req.body?.id || null
-                });
-            }
-        }
-    });
-
-    // Health check endpoint
-    app.get('/health', (_req, res) => {
-        res.json({
-            status: 'healthy',
-            server: 'youtube-mcp',
-            version: packageVersion,
-            timestamp: new Date().toISOString()
-        });
-    });
-
-    // Root endpoint for basic info
-    app.get('/', (_req, res) => {
-        res.json({
-            name: 'YouTube MCP Server',
-            version: packageVersion,
-            description: 'MCP server for YouTube content management',
-            endpoints: {
-                mcp: '/mcp',
-                health: '/health'
-            }
-        });
-    });
-
-    return app;
-}
+// Create the stateless server for Smithery deployment
+createStatelessServer(createServer).app.listen(process.env.PORT || 3000);
