@@ -23,38 +23,25 @@ try {
     const newVersion = packageJson.version;
     console.log(`New version: ${newVersion}`);
 
-    // 3. Sync version files
-    const indexTsPath = path.join(__dirname, '..', 'src', 'index.ts');
-    const serverTsPath = path.join(__dirname, '..', 'src', 'server.ts');
+    // 3. Sync version file
+    const serverUtilsPath = path.join(__dirname, '..', 'src', 'server-utils.ts');
 
-    // Update src/index.ts
-    console.log(`Updating ${indexTsPath}...`);
-    let indexTsContent = fs.readFileSync(indexTsPath, 'utf8');
-    const indexTsRegex = /(version:\s*['"])\d+\.\d+\.\d+(['"])/;
-    if (indexTsRegex.test(indexTsContent)) {
-        indexTsContent = indexTsContent.replace(indexTsRegex, `$1${newVersion}$2`);
-        fs.writeFileSync(indexTsPath, indexTsContent);
+    // Update src/server-utils.ts
+    console.log(`Updating ${serverUtilsPath}...`);
+    let serverUtilsContent = fs.readFileSync(serverUtilsPath, 'utf8');
+    const serverUtilsRegex = /(const packageVersion =\s*['"])\d+\.\d+\.\d+(['"])/;
+    if (serverUtilsRegex.test(serverUtilsContent)) {
+        serverUtilsContent = serverUtilsContent.replace(serverUtilsRegex, `$1${newVersion}$2`);
+        fs.writeFileSync(serverUtilsPath, serverUtilsContent);
     } else {
-        console.error(`Could not find version pattern in ${indexTsPath}`);
-        process.exit(1);
-    }
-
-    // Update src/server.ts
-    console.log(`Updating ${serverTsPath}...`);
-    let serverTsContent = fs.readFileSync(serverTsPath, 'utf8');
-    const serverTsRegex = /(const packageVersion =\s*['"])\d+\.\d+\.\d+(['"])/;
-    if (serverTsRegex.test(serverTsContent)) {
-        serverTsContent = serverTsContent.replace(serverTsRegex, `$1${newVersion}$2`);
-        fs.writeFileSync(serverTsPath, serverTsContent);
-    } else {
-        console.error(`Could not find version pattern in ${serverTsPath}`);
+        console.error(`Could not find version pattern in ${serverUtilsPath}`);
         process.exit(1);
     }
 
     // 4. Git commit and tag
     console.log('Committing and tagging...');
     // Stage package.json (and lockfile if it exists), and the source files
-    run(`git add package.json package-lock.json src/index.ts src/server.ts`);
+    run(`git add package.json package-lock.json src/server-utils.ts`);
     run(`git commit -m "chore: bump version to ${newVersion}"`);
     run(`git tag v${newVersion}`);
 
