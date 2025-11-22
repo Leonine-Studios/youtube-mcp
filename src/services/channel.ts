@@ -36,7 +36,7 @@ export class ChannelService {
    */
   async getChannel({ 
     channelId 
-  }: ChannelParams): Promise<any> {
+  }: ChannelParams): Promise<unknown> {
     try {
       this.initialize();
       
@@ -57,7 +57,7 @@ export class ChannelService {
   async getPlaylists({ 
     channelId, 
     maxResults = 50 
-  }: ChannelVideosParams): Promise<any[]> {
+  }: ChannelVideosParams): Promise<unknown[]> {
     try {
       this.initialize();
       
@@ -79,7 +79,7 @@ export class ChannelService {
   async listVideos({ 
     channelId, 
     maxResults = 50 
-  }: ChannelVideosParams): Promise<any[]> {
+  }: ChannelVideosParams): Promise<unknown[]> {
     try {
       this.initialize();
       
@@ -102,7 +102,7 @@ export class ChannelService {
    */
   async getStatistics({ 
     channelId 
-  }: ChannelParams): Promise<any> {
+  }: ChannelParams): Promise<unknown> {
     try {
       this.initialize();
       

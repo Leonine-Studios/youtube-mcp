@@ -21,6 +21,14 @@ A Model Context Protocol (MCP) server implementation for YouTube, enabling AI la
 * Get timestamped captions
 * Search within transcripts
 
+### Direct Resources & Prompts
+
+* **Resource**: Access transcripts directly via `youtube://transcript/{videoId}`
+* **Prompts**: 
+  * `summarize-video`: Automated workflow to get and summarize video content
+  * `analyze-channel`: Comprehensive analysis of a channel's content strategy
+* **Annotations**: All tools include capability hints (read-only, idempotent) for better LLM performance
+
 ### Channel Management
 
 * Get channel details
@@ -306,7 +314,7 @@ This project uses a **modern MCP SDK architecture** with the following features:
 
 ### Project Structure
 
-```
+```diagram
 src/
 ├── server.ts              # MCP server setup and tool registration
 ├── services/              # Core business logic

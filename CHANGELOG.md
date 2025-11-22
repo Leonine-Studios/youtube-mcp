@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2025-11-21
+
+### Added
+
+- Added `lint` and `typecheck` scripts to `package.json`
+- Added `eslint.config.js` for linting configuration
+- Added `youtube://transcript/{videoId}` resource for direct transcript access
+- Added `summarize-video` and `analyze-channel` prompts
+- Added annotations (`readOnlyHint`, `idempotentHint`) to all MCP tools
+- Added `smithery.yaml` configuration with `startCommand` and detailed config schema
+
+### Changed
+
+- Updated `package.json` version to 0.1.10
+- Refactored service methods to use `unknown` instead of `any` for better type safety
+- Updated `videos_getVideo` to use `annotations` instead of `tags` for Smithery compliance
+
+### Improved
+
+- Significantly improved Smithery Quality Score (annotations, resources, prompts, config)
+- Enhanced type safety across the codebase
+
 ## [0.1.9] - 2025-11-21
 
 ### Added

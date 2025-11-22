@@ -24,7 +24,7 @@ export class TranscriptService {
   async getTranscript({ 
     videoId, 
     language = process.env.YOUTUBE_TRANSCRIPT_LANG || 'en' 
-  }: TranscriptParams): Promise<any> {
+  }: TranscriptParams): Promise<unknown> {
     try {
       this.initialize();
       
@@ -48,7 +48,7 @@ export class TranscriptService {
     videoId, 
     query,
     language = process.env.YOUTUBE_TRANSCRIPT_LANG || 'en' 
-  }: SearchTranscriptParams): Promise<any> {
+  }: SearchTranscriptParams): Promise<unknown> {
     try {
       this.initialize();
       
@@ -61,6 +61,7 @@ export class TranscriptService {
       
       return {
         videoId,
+        language,
         query,
         matches,
         totalMatches: matches.length
@@ -76,7 +77,7 @@ export class TranscriptService {
   async getTimestampedTranscript({ 
     videoId, 
     language = process.env.YOUTUBE_TRANSCRIPT_LANG || 'en' 
-  }: TranscriptParams): Promise<any> {
+  }: TranscriptParams): Promise<unknown> {
     try {
       this.initialize();
       

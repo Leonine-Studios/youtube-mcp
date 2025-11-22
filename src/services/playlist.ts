@@ -36,7 +36,7 @@ export class PlaylistService {
    */
   async getPlaylist({ 
     playlistId 
-  }: PlaylistParams): Promise<any> {
+  }: PlaylistParams): Promise<unknown> {
     try {
       this.initialize();
       
@@ -57,7 +57,7 @@ export class PlaylistService {
   async getPlaylistItems({ 
     playlistId, 
     maxResults = 50 
-  }: PlaylistItemsParams): Promise<any[]> {
+  }: PlaylistItemsParams): Promise<unknown[]> {
     try {
       this.initialize();
       
@@ -79,7 +79,7 @@ export class PlaylistService {
   async searchPlaylists({ 
     query, 
     maxResults = 10 
-  }: SearchParams): Promise<any[]> {
+  }: SearchParams): Promise<unknown[]> {
     try {
       this.initialize();
       

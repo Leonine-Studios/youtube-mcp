@@ -15,14 +15,16 @@ export class VideoService {
   /**
    * Create a structured video object with URL
    */
-  private createStructuredVideo(videoData: any): any {
+  private createStructuredVideo(videoData: unknown): unknown {
     if (!videoData) return null;
 
-    const videoId = videoData.id || videoData.id?.videoId;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v = videoData as any;
+    const videoId = v.id || v.id?.videoId;
     const url = videoId ? `https://www.youtube.com/watch?v=${videoId}` : null;
 
     return {
-      ...videoData,
+      ...v,
       url,
       videoId
     };
@@ -31,7 +33,7 @@ export class VideoService {
   /**
    * Create structured video objects with URLs for arrays
    */
-  private createStructuredVideos(videos: any[]): any[] {
+  private createStructuredVideos(videos: unknown[]): unknown[] {
     return videos.map(video => this.createStructuredVideo(video)).filter(Boolean);
   }
 
@@ -60,7 +62,7 @@ export class VideoService {
   async getVideo({
     videoId,
     parts = ['snippet', 'contentDetails', 'statistics']
-  }: VideoParams): Promise<any> {
+  }: VideoParams): Promise<unknown> {
     try {
       this.initialize();
 
@@ -82,7 +84,7 @@ export class VideoService {
   async searchVideos({
     query,
     maxResults = 10
-  }: SearchParams): Promise<any[]> {
+  }: SearchParams): Promise<unknown[]> {
     try {
       this.initialize();
 
@@ -105,7 +107,7 @@ export class VideoService {
    */
   async getVideoStats({ 
     videoId 
-  }: { videoId: string }): Promise<any> {
+  }: { videoId: string }): Promise<unknown> {
     try {
       this.initialize();
       
@@ -127,22 +129,20 @@ export class VideoService {
     regionCode = 'US',
     maxResults = 10,
     videoCategoryId = ''
-  }: TrendingParams): Promise<any[]> {
+  }: TrendingParams): Promise<unknown[]> {
     try {
       this.initialize();
 
-      const params: any = {
+      const params = {
         part: ['snippet', 'contentDetails', 'statistics'],
         chart: 'mostPopular',
         regionCode,
-        maxResults
+        maxResults,
+        ...(videoCategoryId && { videoCategoryId })
       };
 
-      if (videoCategoryId) {
-        params.videoCategoryId = videoCategoryId;
-      }
-
-      const response = await this.youtube.videos.list(params);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await this.youtube.videos.list(params as any);
       const videos = response.data.items || [];
       return this.createStructuredVideos(videos);
     } catch (error) {
@@ -156,7 +156,7 @@ export class VideoService {
   async getRelatedVideos({
     videoId,
     maxResults = 10
-  }: RelatedVideosParams): Promise<any[]> {
+  }: RelatedVideosParams): Promise<unknown[]> {
     try {
       this.initialize();
 
