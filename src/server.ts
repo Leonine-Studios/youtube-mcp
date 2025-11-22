@@ -12,6 +12,12 @@ export async function startMcpServer() {
     const server = new McpServer({
         name: 'youtube-mcp',
         version: packageVersion,
+    }, {
+        capabilities: {
+            resources: {},
+            prompts: {},
+            tools: {},
+        }
     });
 
     const videoService = new VideoService();
