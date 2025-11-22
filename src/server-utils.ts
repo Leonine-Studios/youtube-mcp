@@ -5,7 +5,7 @@ import { TranscriptService } from './services/transcript.js';
 import { PlaylistService } from './services/playlist.js';
 import { ChannelService } from './services/channel.js';
 
-const packageVersion = '0.1.11';
+const packageVersion = '0.1.12';
 
 /**
  * Creates and configures a YouTube MCP server with all tools, resources, and prompts registered
