@@ -1,13 +1,17 @@
-declare module 'youtube-transcript' {
-  export interface TranscriptLine {
+declare module 'youtube-caption-extractor' {
+  export interface Subtitle {
     text: string;
-    offset: number;
-    duration: number;
+    start: string;
+    dur: string;
   }
 
-  export class YoutubeTranscript {
-    static fetchTranscript(videoId: string): Promise<TranscriptLine[]>;
+  export interface VideoDetails {
+    title: string;
+    description: string;
+    lengthSeconds: string;
+    viewCount: string;
   }
 
-  export default YoutubeTranscript;
+  export function getSubtitles(options: { videoID: string; lang?: string }): Promise<Subtitle[]>;
+  export function getVideoDetails(options: { videoID: string; lang?: string }): Promise<VideoDetails>;
 }

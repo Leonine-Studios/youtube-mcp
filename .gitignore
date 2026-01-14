@@ -43,4 +43,4 @@ Thumbs.db
 !package.json
 !package-lock.json
 !tsconfig.json
-!.env.example
+!.env.example.env

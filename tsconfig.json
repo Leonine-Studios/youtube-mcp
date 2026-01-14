@@ -24,6 +24,7 @@
     "src/index.ts",
     "src/server.ts",
     "src/cli.ts",
+    "src/http-server.ts",
     "src/types.ts"
   ],
   "exclude": [

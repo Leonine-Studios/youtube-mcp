@@ -1,13 +1,51 @@
-.git
-.github
-node_modules
-npm-debug.log
-Dockerfile
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
 .env
-.env.example
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# GitHub
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation (not needed in image)
 *.md
 !README.md
-.gitignore
-.npm
-.vscode
-dist
+CHANGELOG.md
+CLAUDE.md
+GEMINI.md
+HTTP-MODE.md
+
+# Testing
+test/
+tests/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Build artifacts (will be built in Docker)
+dist/
+
+# Misc
+.eslintcache
+coverage/
+.nyc_output/
+README.md.backup

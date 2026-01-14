@@ -1,4 +1,4 @@
-import { YoutubeTranscript } from "youtube-transcript";
+import { getSubtitles } from "youtube-caption-extractor";
 import { TranscriptParams, SearchTranscriptParams } from '../types.js';
 
 /**
@@ -28,8 +28,8 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      // YoutubeTranscript.fetchTranscript only accepts videoId
-      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+      // Use youtube-caption-extractor to fetch subtitles
+      const transcript = await getSubtitles({ videoID: videoId, lang: language });
       
       return {
         videoId,
@@ -52,7 +52,7 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+      const transcript = await getSubtitles({ videoID: videoId, lang: language });
       
       // Search through transcript for the query
       const matches = transcript.filter(item => 
@@ -81,11 +81,11 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+      const transcript = await getSubtitles({ videoID: videoId, lang: language });
       
       // Format timestamps in human-readable format
       const timestampedTranscript = transcript.map(item => {
-        const seconds = item.offset / 1000;
+        const seconds = parseFloat(item.start);
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
         const formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -93,8 +93,8 @@ export class TranscriptService {
         return {
           timestamp: formattedTime,
           text: item.text,
-          startTimeMs: item.offset,
-          durationMs: item.duration
+          startTimeMs: parseFloat(item.start) * 1000,
+          durationMs: parseFloat(item.dur) * 1000
         };
       });
       

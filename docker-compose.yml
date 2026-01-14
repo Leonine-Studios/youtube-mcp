@@ -1,0 +1,11 @@
+services:
+  youtube-mcp:
+    image: ghcr.io/leonine-studios/youtube-mcp:latest
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    ports:
+      - "${PORT:-3000}:3000"
+    restart: unless-stopped
