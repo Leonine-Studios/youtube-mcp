@@ -48,8 +48,6 @@ app.get('/health', (req, res) => {
 
 // MCP endpoint with SSE transport
 app.get('/sse', async (req, res) => {
-    console.log('New SSE connection from:', req.ip);
-    
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -61,22 +59,23 @@ app.get('/sse', async (req, res) => {
     
     // Get the session ID from the transport (it generates it internally)
     const sessionId = transport.sessionId;
+    const shortId = sessionId.slice(0, 8);
     
     // Store the transport for message routing
     activeTransports.set(sessionId, transport);
     
     // Clean up when connection closes
     req.on('close', () => {
-        console.log(`SSE connection closed for session ${sessionId}`);
+        console.log(`[SSE] Closed: ${shortId}`);
         activeTransports.delete(sessionId);
     });
     
     try {
         // Connect the server to the transport (this automatically calls start())
         await server.connect(transport);
-        console.log(`MCP Server connected via SSE with session ${sessionId}`);
+        console.log(`[SSE] Connected: ${shortId}`);
     } catch (error) {
-        console.error('Error connecting MCP server to transport:', error);
+        console.error(`[SSE] Error: ${shortId}`, error);
         activeTransports.delete(sessionId);
         if (!res.headersSent) {
             res.status(500).end();
@@ -86,7 +85,6 @@ app.get('/sse', async (req, res) => {
 
 // Handle POST to /sse for newer MCP clients that try streamable HTTP first
 app.post('/sse', async (req, res) => {
-    console.log('POST request to /sse from:', req.ip);
     // Return error to force fallback to GET SSE
     res.status(404).json({ 
         error: 'Streamable HTTP not supported, use GET /sse for SSE transport' 
@@ -111,24 +109,20 @@ app.post('/message', async (req, res) => {
                     req.headers['x-mcp-session-id'] as string ||
                     req.headers['x-session-id'] as string;
     
-    console.log(`Received POST /message`);
-    console.log(`  Query params:`, req.query);
-    console.log(`  Headers:`, Object.keys(req.headers));
-    console.log(`  Session ID found: ${sessionId}`);
-    console.log(`  Active sessions: ${Array.from(activeTransports.keys()).join(', ')}`);
-    
     // Try to find the transport
     let transport = sessionId ? activeTransports.get(sessionId) : undefined;
     
     // If no session ID found or no matching transport, try to use the only active transport
     if (!transport && activeTransports.size === 1) {
         transport = Array.from(activeTransports.values())[0];
-        console.log(`Using single active transport with session: ${transport.sessionId}`);
+        sessionId = transport.sessionId;
     }
+    
+    const shortId = sessionId ? sessionId.slice(0, 8) : 'unknown';
     
     // If still no transport and we have multiple, this is an error
     if (!transport) {
-        console.error(`No active transport found. Session ID: ${sessionId}, Active transports: ${activeTransports.size}`);
+        console.error(`[MSG] Session not found: ${shortId}`);
         return res.status(404).json({ 
             error: 'Session not found or expired',
             activeTransports: activeTransports.size
@@ -136,12 +130,12 @@ app.post('/message', async (req, res) => {
     }
     
     try {
-        console.log(`Routing message to transport ${transport.sessionId}`);
+        console.log(`[MSG] ${shortId}`);
         // The transport will handle the message internally
         // Pass the parsed body from express
         await transport.handlePostMessage(req, res, messageBody);
     } catch (error) {
-        console.error('Error handling message:', error);
+        console.error(`[MSG] Error: ${shortId}`, error);
         if (!res.headersSent) {
             res.status(500).json({ error: 'Internal server error' });
         }
