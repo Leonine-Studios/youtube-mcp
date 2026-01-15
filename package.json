@@ -7,7 +7,7 @@
   "main": "dist/http-server.js",
   "scripts": {
     "start": "node ./dist/http-server.js",
-    "dev": "nodemon --exec \"npm run build && npm start\" --ext ts",
+    "dev": "nodemon --ignore dist/ --exec \"npm run build && npm start\" --ext ts",
     "build": "tsc",
     "clean": "rm -rf dist",
     "rebuild": "npm run clean && npm run build",
@@ -25,6 +25,7 @@
     "@modelcontextprotocol/sdk": "^1.1.1",
     "@smithery/sdk": "^1.7.4",
     "@types/express": "^5.0.6",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "googleapis": "^129.0.0",
     "youtube-caption-extractor": "^1.8.2",
