@@ -14,20 +14,30 @@
     "LICENSE"
   ],
   "scripts": {
-    "start": "node ./dist/index.js",
+    "start": "node ./dist/http-server.js",
+    "start:cli": "node ./dist/index.js",
     "build": "tsc",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "dev": "nodemon --exec \"npm run build && npm start\" --ext ts",
+    "dev": "nodemon --ignore dist/ --exec \"npm run build && npm start\" --ext ts",
+    "clean": "rm -rf dist",
+    "rebuild": "npm run clean && npm run build",
     "prepublishOnly": "npm run build",
     "smithery:build": "npx smithery build",
     "smithery:dev": "npx smithery dev",
     "bump": "node --loader ts-node/esm scripts/release.ts",
-    "publish-npm": "npm publish --access public"
+    "publish-npm": "npm publish --access public",
+    "docker:build": "docker build -t youtube-mcp:latest .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env youtube-mcp:latest",
+    "docker:compose:up": "docker-compose up -d",
+    "docker:compose:down": "docker-compose down"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.1.1",
     "@smithery/sdk": "^1.7.4",
+    "@types/express": "^5.0.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "googleapis": "^129.0.0",
     "youtube-caption-extractor": "^1.8.2",
     "ytdl-core": "^4.11.5",
