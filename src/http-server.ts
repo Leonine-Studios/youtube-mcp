@@ -67,14 +67,12 @@ app.get('/sse', async (req, res) => {
     
     // Clean up when connection closes
     req.on('close', () => {
-        console.log(`[SSE] Closed: ${shortId}`);
         activeTransports.delete(sessionId);
     });
     
     try {
         // Connect the server to the transport (this automatically calls start())
         await server.connect(transport);
-        console.log(`[SSE] Connected: ${shortId}`);
     } catch (error) {
         console.error(`[SSE] Error: ${shortId}`, error);
         activeTransports.delete(sessionId);
@@ -131,7 +129,6 @@ app.post('/message', async (req, res) => {
     }
     
     try {
-        console.log(`[MSG] ${shortId}`);
         // The transport will handle the message internally
         // Pass the parsed body from express
         await transport.handlePostMessage(req, res, messageBody);
