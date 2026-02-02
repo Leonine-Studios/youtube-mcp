@@ -77,3 +77,11 @@ export interface PlaylistItemsParams {
   playlistId: string;
   maxResults?: number;
 }
+
+/**
+ * Comments parameters
+ */
+export interface CommentsParams {
+  videoId: string;
+  maxResults?: number;
+}

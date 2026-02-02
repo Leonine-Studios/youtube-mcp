@@ -4,6 +4,7 @@ import { VideoService } from './services/video.js';
 import { TranscriptService } from './services/transcript.js';
 import { PlaylistService } from './services/playlist.js';
 import { ChannelService } from './services/channel.js';
+import { CommentService } from './services/comment.js';
 
 const packageVersion = '0.1.12';
 
@@ -26,6 +27,7 @@ export function createYouTubeMcpServer() {
     const transcriptService = new TranscriptService();
     const playlistService = new PlaylistService();
     const channelService = new ChannelService();
+    const commentService = new CommentService();
 
     // Register static resource for Smithery discovery
     server.registerResource(
@@ -56,7 +58,8 @@ export function createYouTubeMcpServer() {
                         "channels_getChannel",
                         "channels_listVideos",
                         "playlists_getPlaylist",
-                        "playlists_getPlaylistItems"
+                        "playlists_getPlaylistItems",
+                        "comments_getComments"
                     ],
                     prompts: [
                         "summarize-video",
@@ -275,6 +278,29 @@ export function createYouTubeMcpServer() {
         },
         async ({ playlistId, maxResults }) => {
             const result = await playlistService.getPlaylistItems({ playlistId, maxResults });
+            return {
+                content: [{
+                    type: 'text',
+                    text: JSON.stringify(result, null, 2)
+                }]
+            };
+        }
+    );
+
+    // Register comment tools
+    server.registerTool(
+        'comments_getComments',
+        {
+            title: 'Get Video Comments',
+            description: 'Get comments from a YouTube video',
+            annotations: { readOnlyHint: true, idempotentHint: true },
+            inputSchema: {
+                videoId: z.string().describe('The YouTube video ID'),
+                maxResults: z.number().optional().describe('Maximum number of comments to return (default: 20)'),
+            },
+        },
+        async ({ videoId, maxResults }) => {
+            const result = await commentService.getComments({ videoId, maxResults });
             return {
                 content: [{
                     type: 'text',
