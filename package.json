@@ -29,7 +29,7 @@
     "@modelcontextprotocol/sdk": "^1.1.1",
     "@smithery/sdk": "^1.7.4",
     "googleapis": "^129.0.0",
-    "youtube-transcript": "^1.0.6",
+    "youtube-caption-extractor": "^1.8.2",
     "ytdl-core": "^4.11.5",
     "zod": "^3.25.46",
     "zod-to-json-schema": "^3.22.5"
@@ -57,10 +57,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sfiorini/youtube-mcp.git"
+    "url": "git+https://github.com/Leonine-Studios/youtube-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/sfiorini/youtube-mcp/issues"
+    "url": "https://github.com/Leonine-Studios/youtube-mcp/issues"
   },
-  "homepage": "https://github.com/sfiorini/youtube-mcp#readme"
+  "homepage": "https://github.com/Leonine-Studios/youtube-mcp#readme"
 }
