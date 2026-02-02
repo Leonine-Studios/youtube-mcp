@@ -19,6 +19,7 @@ This fork fixes it by using `youtube-caption-extractor` v1.8.2 instead. **Transc
 - ✅ **Video details** - Get title, description, views, likes, etc.
 - ✅ **Multi-user HTTP/SSE** - Multiple AI clients can connect simultaneously
 - ✅ **Docker-ready** - One command deployment
+- ✅ **Resources & Prompts** - Smithery-optimized with discoverable resources
 
 ## Quick Start
 
@@ -113,6 +114,17 @@ Once connected, your AI assistant can use:
 - `channels_listVideos` - List channel videos
 - `playlists_getPlaylist` - Get playlist details
 - `playlists_getPlaylistItems` - List playlist items
+- `comments_getComments` - Get video comments
+
+### Resources & Prompts
+
+* **Resources**:
+  * `youtube://transcript/{videoId}`: Access transcripts directly via resource URIs
+  * `youtube://info`: Server information and usage documentation
+* **Prompts**:
+  * `summarize-video`: Automated workflow to get and summarize video content
+  * `analyze-channel`: Comprehensive analysis of a channel's content strategy
+* **Annotations**: All tools include capability hints (read-only, idempotent) for better LLM performance
 
 ## Development
 
@@ -142,6 +154,35 @@ This server supports multiple simultaneous connections:
 
 Perfect for teams or remote deployments!
 
+## Architecture
+
+This project uses a **dual-architecture service-based design**:
+
+* **Shared Utilities**: Single source of truth for all MCP server configuration (`src/server-utils.ts`)
+* **Modern McpServer**: Updated from deprecated `Server` class to the new `McpServer`
+* **Dynamic Version Management**: Version automatically read from `package.json`
+* **Type-Safe Tool Registration**: Uses `zod` schemas for input validation
+* **ES Modules**: Full ES module support with proper `.js` extensions
+* **Enhanced Video Responses**: All video operations include `url` and `videoId` fields
+* **Lazy Initialization**: YouTube API client initialized only when needed
+
+### Project Structure
+
+```
+src/
+├── server-utils.ts        # Shared MCP server utilities (single source of truth)
+├── index.ts              # Smithery deployment entry point
+├── server.ts             # CLI deployment entry point
+├── services/             # Core business logic
+│   ├── video.ts         # Video operations (search, getVideo)
+│   ├── transcript.ts    # Transcript retrieval
+│   ├── playlist.ts      # Playlist operations
+│   ├── channel.ts       # Channel operations
+│   └── comment.ts       # Comment retrieval
+├── types.ts             # TypeScript interfaces
+└── cli.ts               # CLI wrapper for standalone execution
+```
+
 ## Troubleshooting
 
 **Connection timeout?**
@@ -166,7 +207,7 @@ curl "https://www.googleapis.com/youtube/v3/videos?part=snippet&id=dQw4w9WgXcQ&k
 
 **Main Fix:** Transcript extraction now works. The original used the broken `youtube-transcript` library. This fork uses `youtube-caption-extractor` v1.8.2 which is reliable and actively maintained.
 
-**Other Changes:** Docker-first deployment with pre-built GHCR images, HTTP/SSE transport for multi-user support, simplified setup focused on containers, and production-ready security hardening.
+**Other Changes:** Docker-first deployment with pre-built GHCR images, HTTP/SSE transport for multi-user support, simplified setup focused on containers, production-ready security hardening, and added comment retrieval.
 
 ## License
 
