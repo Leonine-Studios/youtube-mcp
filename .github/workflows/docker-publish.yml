@@ -1,7 +1,9 @@
 name: Build and Push Docker Image
 
-# Only runs on manual trigger or release - safe for forks
+# Runs on push to main, manual trigger, or release - safe for forks
 on:
+  push:
+    branches: [main]
   workflow_dispatch:  # Manual "Run workflow" button in GitHub Actions
   release:
     types: [published]
