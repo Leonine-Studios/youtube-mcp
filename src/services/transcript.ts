@@ -29,8 +29,9 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      // Use yt-transcript-api to fetch subtitles (lang parameter not supported in current version)
-      const transcript = await YouTubeTranscriptApi.getTranscript(videoId);
+      // Use yt-transcript-api to fetch subtitles - need to create instance first
+      const api = new YouTubeTranscriptApi();
+      const transcript = await api.fetch(videoId, [language]);
       
       return {
         videoId,
@@ -53,7 +54,8 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      const transcript = await YouTubeTranscriptApi.getTranscript(videoId);
+      const api = new YouTubeTranscriptApi();
+      const transcript = await api.fetch(videoId, [language]);
       
       // Search through transcript for the query
       const matches = transcript.filter((item: any) => 
@@ -82,7 +84,8 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      const transcript = await YouTubeTranscriptApi.getTranscript(videoId);
+      const api = new YouTubeTranscriptApi();
+      const transcript = await api.fetch(videoId, [language]);
       
       // Format timestamps in human-readable format
       const timestampedTranscript = transcript.map((item: any) => {
