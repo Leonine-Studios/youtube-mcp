@@ -1,5 +1,6 @@
-import { getSubtitles } from "youtube-caption-extractor";
 import { TranscriptParams, SearchTranscriptParams } from '../types.js';
+import ytTranscriptApi from 'yt-transcript-api';
+const { YouTubeTranscriptApi } = ytTranscriptApi;
 
 /**
  * Service for interacting with YouTube video transcripts
@@ -28,8 +29,8 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      // Use youtube-caption-extractor to fetch subtitles
-      const transcript = await getSubtitles({ videoID: videoId, lang: language });
+      // Use yt-transcript-api to fetch subtitles (lang parameter not supported in current version)
+      const transcript = await YouTubeTranscriptApi.getTranscript(videoId);
       
       return {
         videoId,
@@ -52,10 +53,10 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      const transcript = await getSubtitles({ videoID: videoId, lang: language });
+      const transcript = await YouTubeTranscriptApi.getTranscript(videoId);
       
       // Search through transcript for the query
-      const matches = transcript.filter(item => 
+      const matches = transcript.filter((item: any) => 
         item.text.toLowerCase().includes(query.toLowerCase())
       );
       
@@ -81,10 +82,10 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      const transcript = await getSubtitles({ videoID: videoId, lang: language });
+      const transcript = await YouTubeTranscriptApi.getTranscript(videoId);
       
       // Format timestamps in human-readable format
-      const timestampedTranscript = transcript.map(item => {
+      const timestampedTranscript = transcript.map((item: any) => {
         const seconds = parseFloat(item.start);
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
@@ -94,7 +95,7 @@ export class TranscriptService {
           timestamp: formattedTime,
           text: item.text,
           startTimeMs: parseFloat(item.start) * 1000,
-          durationMs: parseFloat(item.dur) * 1000
+          durationMs: parseFloat(item.duration) * 1000
         };
       });
       
