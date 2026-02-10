@@ -8,11 +8,11 @@ A Model Context Protocol (MCP) server for YouTube that enables AI assistants to 
 
 The original project had **broken transcript extraction** due to the deprecated `youtube-transcript` library. 
 
-This fork fixes it by using `youtube-caption-extractor` v1.8.2 instead. **Transcript extraction now works perfectly** with timestamps, multi-language support, and consistent reliability.
+This fork fixes it by using `@egoist/youtube-transcript-plus` v1.1.2 instead. **Transcript extraction now works perfectly** with timestamps, multi-language support, and consistent reliability.
 
 ## Features
 
-- ✅ **Working transcript extraction** - Fixed with `youtube-caption-extractor`
+- ✅ **Working transcript extraction** - Fixed with `@egoist/youtube-transcript-plus`
 - ✅ **Timestamped captions** - Get start time and duration for each segment
 - ✅ **Multi-language transcripts** - Support for all YouTube caption languages
 - ✅ **Search YouTube** - Find videos and channels
@@ -205,7 +205,7 @@ curl "https://www.googleapis.com/youtube/v3/videos?part=snippet&id=dQw4w9WgXcQ&k
 
 ## What's Changed from Original
 
-**Main Fix:** Transcript extraction now works. The original used the broken `youtube-transcript` library. This fork uses `youtube-caption-extractor` v1.8.2 which is reliable and actively maintained.
+**Main Fix:** Transcript extraction now works. The original used the broken `youtube-transcript` library. This fork uses `@egoist/youtube-transcript-plus` v1.1.2 which is reliable and actively maintained.
 
 **Other Changes:** Docker-first deployment with pre-built GHCR images, HTTP/SSE transport for multi-user support, simplified setup focused on containers, production-ready security hardening, and added comment retrieval.
 

@@ -1,12 +1,10 @@
 import { TranscriptParams, SearchTranscriptParams } from '../types.js';
-import ytTranscriptApi from 'yt-transcript-api';
-const { YouTubeTranscriptApi } = ytTranscriptApi;
+import { fetchTranscript } from '@egoist/youtube-transcript-plus';
 
 /**
  * Service for interacting with YouTube video transcripts
  */
 export class TranscriptService {
-  // No YouTube API key needed for transcripts, but we'll implement the same pattern
   private initialized = false;
 
   constructor() {
@@ -15,7 +13,6 @@ export class TranscriptService {
 
   private initialize() {
     if (this.initialized) return;
-    // No API key needed for transcripts, but we'll check if language is set
     this.initialized = true;
   }
 
@@ -29,14 +26,16 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      // Use yt-transcript-api to fetch subtitles - need to create instance first
-      const api = new YouTubeTranscriptApi();
-      const transcript = await api.fetch(videoId, [language]);
+      // Use @egoist/youtube-transcript-plus to fetch transcripts with language support
+      const result = await fetchTranscript(videoId, {
+        lang: language
+      });
       
       return {
         videoId,
         language,
-        transcript
+        title: result.title,
+        transcript: result.segments
       };
     } catch (error) {
       throw new Error(`Failed to get transcript: ${error instanceof Error ? error.message : String(error)}`);
@@ -54,11 +53,12 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      const api = new YouTubeTranscriptApi();
-      const transcript = await api.fetch(videoId, [language]);
+      const result = await fetchTranscript(videoId, {
+        lang: language
+      });
       
       // Search through transcript for the query
-      const matches = transcript.filter((item: any) => 
+      const matches = result.segments.filter((item: any) => 
         item.text.toLowerCase().includes(query.toLowerCase())
       );
       
@@ -84,12 +84,13 @@ export class TranscriptService {
     try {
       this.initialize();
       
-      const api = new YouTubeTranscriptApi();
-      const transcript = await api.fetch(videoId, [language]);
+      const result = await fetchTranscript(videoId, {
+        lang: language
+      });
       
       // Format timestamps in human-readable format
-      const timestampedTranscript = transcript.map((item: any) => {
-        const seconds = parseFloat(item.start);
+      const timestampedTranscript = result.segments.map((item: any) => {
+        const seconds = item.offset / 1000;
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
         const formattedTime = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -97,14 +98,15 @@ export class TranscriptService {
         return {
           timestamp: formattedTime,
           text: item.text,
-          startTimeMs: parseFloat(item.start) * 1000,
-          durationMs: parseFloat(item.duration) * 1000
+          startTimeMs: item.offset,
+          durationMs: item.duration
         };
       });
       
       return {
         videoId,
         language,
+        title: result.title,
         timestampedTranscript
       };
     } catch (error) {
