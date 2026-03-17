@@ -17,7 +17,7 @@ This fork fixes it by using `@egoist/youtube-transcript-plus` v1.1.2 instead. **
 - ✅ **Multi-language transcripts** - Support for all YouTube caption languages
 - ✅ **Search YouTube** - Find videos and channels
 - ✅ **Video details** - Get title, description, views, likes, etc.
-- ✅ **Multi-user HTTP/SSE** - Multiple AI clients can connect simultaneously
+- ✅ **Multi-user Streamable HTTP** - Multiple AI clients can connect simultaneously
 - ✅ **Docker-ready** - One command deployment
 - ✅ **Resources & Prompts** - Smithery-optimized with discoverable resources
 
@@ -86,7 +86,7 @@ Add to your MCP client configuration (Cursor, Claude Desktop, etc.):
 {
   "mcpServers": {
     "youtube": {
-      "url": "http://localhost:3000/sse"
+      "url": "http://localhost:3000/mcp"
     }
   }
 }
@@ -97,7 +97,7 @@ For remote server:
 {
   "mcpServers": {
     "youtube": {
-      "url": "http://your-server-ip:3000/sse"
+      "url": "http://your-server-ip:3000/mcp"
     }
   }
 }
@@ -207,7 +207,7 @@ curl "https://www.googleapis.com/youtube/v3/videos?part=snippet&id=dQw4w9WgXcQ&k
 
 **Main Fix:** Transcript extraction now works. The original used the broken `youtube-transcript` library. This fork uses `@egoist/youtube-transcript-plus` v1.1.2 which is reliable and actively maintained.
 
-**Other Changes:** Docker-first deployment with pre-built GHCR images, HTTP/SSE transport for multi-user support, simplified setup focused on containers, production-ready security hardening, and added comment retrieval.
+**Other Changes:** Docker-first deployment with pre-built GHCR images, Streamable HTTP transport for multi-user support, simplified setup focused on containers, production-ready security hardening, and added comment retrieval.
 
 ## License
 

@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 
 import 'dotenv/config';
+import { randomUUID } from 'node:crypto';
 import express from 'express';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createYouTubeMcpServer } from './server-utils.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Store active transports by session ID
-const activeTransports = new Map<string, SSEServerTransport>();
+// Store active transports by session ID (stateful mode)
+const activeTransports = new Map<string, StreamableHTTPServerTransport>();
 
 // Check for required environment variables
 if (!process.env.YOUTUBE_API_KEY) {
@@ -18,126 +19,116 @@ if (!process.env.YOUTUBE_API_KEY) {
     process.exit(1);
 }
 
-// Enable JSON parsing for POST requests
 app.use(express.json());
 
-// Root endpoint - Server info
+// Root endpoint - server info
 app.get('/', (req, res) => {
     res.json({
         name: 'YouTube MCP Server',
         version: '0.1.13',
-        transport: 'HTTP/SSE',
+        transport: 'Streamable HTTP',
         endpoints: {
             health: '/health',
-            sse: '/sse',
-            message: '/message (POST)'
+            mcp: '/mcp (GET / POST / DELETE)'
         },
-        documentation: 'https://github.com/kenzaelk98/youtube-mcp',
+        documentation: 'https://github.com/Leonine-Studios/youtube-mcp',
         status: 'running'
     });
 });
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
+    res.json({
+        status: 'ok',
         service: 'YouTube MCP Server',
-        transport: 'HTTP/SSE',
+        transport: 'Streamable HTTP',
         timestamp: new Date().toISOString()
     });
 });
 
-// MCP endpoint with SSE transport
-app.get('/sse', async (req, res) => {
-    // Set CORS headers
+// CORS preflight for /mcp
+app.options('/mcp', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    
-    // Create a new MCP server instance for this connection
-    const server = createYouTubeMcpServer();
-    const transport = new SSEServerTransport('/message', res);
-    
-    // Get the session ID from the transport (it generates it internally)
-    const sessionId = transport.sessionId;
-    const shortId = sessionId.slice(0, 8);
-    
-    // Store the transport for message routing
-    activeTransports.set(sessionId, transport);
-    
-    // Clean up when connection closes
-    req.on('close', () => {
-        activeTransports.delete(sessionId);
-    });
-    
-    try {
-        // Connect the server to the transport (this automatically calls start())
-        await server.connect(transport);
-    } catch (error) {
-        console.error(`[SSE] Error: ${shortId}`, error);
-        activeTransports.delete(sessionId);
-        if (!res.headersSent) {
-            res.status(500).end();
-        }
-    }
-});
-
-// Handle POST to /sse for newer MCP clients that try streamable HTTP first
-app.post('/sse', async (req, res) => {
-    // Return error to force fallback to GET SSE
-    res.status(404).json({ 
-        error: 'Streamable HTTP not supported, use GET /sse for SSE transport' 
-    });
-});
-
-// CORS preflight
-app.options('/message', (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, mcp-session-id');
     res.sendStatus(204);
 });
 
-// POST endpoint for messages - route to the appropriate transport
-app.post('/message', async (req, res) => {
-    // The session ID can come from various places
-    const messageBody = req.body;
-    
-    // Check multiple possible locations for session ID
-    let sessionId = req.query.sessionId as string || 
-                    req.headers['x-mcp-session-id'] as string ||
-                    req.headers['x-session-id'] as string;
-    
-    // Try to find the transport
-    let transport = sessionId ? activeTransports.get(sessionId) : undefined;
-    
-    // If no session ID found or no matching transport, try to use the only active transport
-    if (!transport && activeTransports.size === 1) {
-        transport = Array.from(activeTransports.values())[0];
-        sessionId = transport.sessionId;
-    }
-    
-    const shortId = sessionId ? sessionId.slice(0, 8) : 'unknown';
-    
-    // If still no transport and we have multiple, this is an error
-    if (!transport) {
-        console.error(`[MSG] Session not found: ${shortId}`);
-        return res.status(404).json({ 
-            error: 'Session not found or expired',
-            activeTransports: activeTransports.size
+// Shared CORS middleware for /mcp
+function setCorsHeaders(res: express.Response) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, mcp-session-id');
+}
+
+// POST /mcp — handles initialize (creates new session) and subsequent messages
+app.post('/mcp', async (req, res) => {
+    setCorsHeaders(res);
+
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+
+    let transport: StreamableHTTPServerTransport;
+
+    if (sessionId && activeTransports.has(sessionId)) {
+        // Route to existing session
+        transport = activeTransports.get(sessionId)!;
+    } else if (!sessionId) {
+        // No session ID — treat as new initialization request
+        transport = new StreamableHTTPServerTransport({
+            sessionIdGenerator: () => randomUUID(),
         });
-    }
-    
-    try {
-        // The transport will handle the message internally
-        // Pass the parsed body from express
-        await transport.handlePostMessage(req, res, messageBody);
-    } catch (error) {
-        console.error(`[MSG] Error: ${shortId}`, error);
-        if (!res.headersSent) {
-            res.status(500).json({ error: 'Internal server error' });
+
+        const server = createYouTubeMcpServer();
+
+        transport.onclose = () => {
+            if (transport.sessionId) {
+                activeTransports.delete(transport.sessionId);
+            }
+        };
+
+        await server.connect(transport);
+
+        // Session ID is set after connect; store the transport
+        if (transport.sessionId) {
+            activeTransports.set(transport.sessionId, transport);
         }
+    } else {
+        res.status(404).json({ error: 'Session not found or expired' });
+        return;
     }
+
+    await transport.handleRequest(req, res, req.body);
+});
+
+// GET /mcp — optional SSE stream for server-initiated notifications
+app.get('/mcp', async (req, res) => {
+    setCorsHeaders(res);
+
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+
+    if (!sessionId || !activeTransports.has(sessionId)) {
+        res.status(400).json({ error: 'Missing or invalid mcp-session-id header' });
+        return;
+    }
+
+    const transport = activeTransports.get(sessionId)!;
+    await transport.handleRequest(req, res);
+});
+
+// DELETE /mcp — terminate a session
+app.delete('/mcp', async (req, res) => {
+    setCorsHeaders(res);
+
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+
+    if (!sessionId || !activeTransports.has(sessionId)) {
+        res.status(404).json({ error: 'Session not found or expired' });
+        return;
+    }
+
+    const transport = activeTransports.get(sessionId)!;
+    await transport.handleRequest(req, res);
+    activeTransports.delete(sessionId);
 });
 
 // Start server
@@ -145,7 +136,7 @@ app.listen(PORT, () => {
     console.log('🚀 YouTube MCP HTTP Server started!');
     console.log(`📡 Server running on: http://localhost:${PORT}`);
     console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔌 SSE endpoint: http://localhost:${PORT}/sse`);
+    console.log(`🔌 MCP endpoint: http://localhost:${PORT}/mcp`);
     console.log(`✅ YouTube API Key: ${process.env.YOUTUBE_API_KEY ? 'Configured' : 'MISSING'}`);
 });
 

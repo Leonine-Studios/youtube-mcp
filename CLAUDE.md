@@ -81,6 +81,7 @@ This enhancement applies to:
 - ✅ Manual schema definition → `zod` validation schemas
 - ✅ Static version → Dynamic version from `package.json`
 - ✅ Basic error handling → Comprehensive error handling
+- ✅ SSE transport (`/sse` + `/message`) → Streamable HTTP transport (`/mcp`)
 
 ### MCP Tool Registration & Annotations
 
@@ -147,6 +148,7 @@ The project uses **ES modules** (ESNext) as configured in:
 |------|---------|
 | `src/server-utils.ts` | **🆕 Shared MCP server utilities** (tools, resources, prompts) - single source of truth |
 | `src/index.ts` | Smithery-compatible `createServer` function for platform deployment |
+| `src/http-server.ts` | HTTP server using **Streamable HTTP** transport (`/mcp` endpoint, stateful sessions) |
 | `src/server.ts` | CLI MCP server with stdio transport. Uses shared utilities. |
 | `src/cli.ts` | CLI wrapper that validates environment variables and starts server |
 | `src/services/video.ts` | Video lookup and search functionality |

@@ -33,13 +33,13 @@
     "docker:compose:down": "docker-compose down"
   },
   "dependencies": {
+    "@egoist/youtube-transcript-plus": "^1.1.2",
     "@modelcontextprotocol/sdk": "^1.1.1",
     "@smithery/sdk": "^1.7.4",
     "@types/express": "^5.0.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "googleapis": "^129.0.0",
-    "@egoist/youtube-transcript-plus": "^1.1.2",
     "ytdl-core": "^4.11.5",
     "zod": "^3.25.46",
     "zod-to-json-schema": "^3.22.5"
