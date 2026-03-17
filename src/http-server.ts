@@ -69,11 +69,13 @@ app.post('/mcp', async (req, res) => {
 
     let transport: StreamableHTTPServerTransport;
 
+    const isInitialize = req.body?.method === 'initialize';
+
     if (sessionId && activeTransports.has(sessionId)) {
         // Route to existing session
         transport = activeTransports.get(sessionId)!;
-    } else if (!sessionId) {
-        // No session ID — treat as new initialization request
+    } else if (!sessionId || isInitialize) {
+        // No session ID, or client sent a stale session ID with an initialize request — create a new session
         transport = new StreamableHTTPServerTransport({
             sessionIdGenerator: () => randomUUID(),
         });
@@ -88,7 +90,6 @@ app.post('/mcp', async (req, res) => {
 
         await server.connect(transport);
 
-        // Session ID is set after connect; store the transport
         if (transport.sessionId) {
             activeTransports.set(transport.sessionId, transport);
         }
