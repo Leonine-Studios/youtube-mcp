@@ -9,10 +9,8 @@ import { createYouTubeMcpServer } from './server-utils.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Store active transports by session ID (stateful mode)
 const activeTransports = new Map<string, StreamableHTTPServerTransport>();
 
-// Check for required environment variables
 if (!process.env.YOUTUBE_API_KEY) {
     console.error('Error: YOUTUBE_API_KEY environment variable is required.');
     console.error('Please set it before running this server.');
@@ -21,7 +19,6 @@ if (!process.env.YOUTUBE_API_KEY) {
 
 app.use(express.json());
 
-// Root endpoint - server info
 app.get('/', (req, res) => {
     res.json({
         name: 'YouTube MCP Server',
@@ -29,39 +26,53 @@ app.get('/', (req, res) => {
         transport: 'Streamable HTTP',
         endpoints: {
             health: '/health',
-            mcp: '/mcp (GET / POST / DELETE)'
+            mcp: '/mcp (POST / GET / DELETE)',
         },
         documentation: 'https://github.com/Leonine-Studios/youtube-mcp',
-        status: 'running'
+        status: 'running',
     });
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
         service: 'YouTube MCP Server',
         transport: 'Streamable HTTP',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
 });
 
-// CORS preflight for /mcp
-app.options('/mcp', (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, mcp-session-id');
-    res.sendStatus(204);
-});
-
-// Shared CORS middleware for /mcp
 function setCorsHeaders(res: express.Response) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, mcp-session-id');
 }
 
-// POST /mcp — handles initialize (creates new session) and subsequent messages
+app.options('/mcp', (req, res) => {
+    setCorsHeaders(res);
+    res.sendStatus(204);
+});
+
+// Helper: spin up a fresh transport + server pair and track it
+async function createTransportSession(): Promise<StreamableHTTPServerTransport> {
+    const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+    });
+
+    const server = createYouTubeMcpServer();
+
+    transport.onclose = () => {
+        if (transport.sessionId) {
+            activeTransports.delete(transport.sessionId);
+        }
+    };
+
+    await server.connect(transport);
+
+    return transport;
+}
+
+// POST /mcp — initialize or route to an existing session
 app.post('/mcp', async (req, res) => {
     setCorsHeaders(res);
 
@@ -69,39 +80,26 @@ app.post('/mcp', async (req, res) => {
 
     let transport: StreamableHTTPServerTransport;
 
-    const isInitialize = req.body?.method === 'initialize';
-
     if (sessionId && activeTransports.has(sessionId)) {
-        // Route to existing session
         transport = activeTransports.get(sessionId)!;
-    } else if (!sessionId || isInitialize) {
-        // No session ID, or client sent a stale session ID with an initialize request — create a new session
-        transport = new StreamableHTTPServerTransport({
-            sessionIdGenerator: () => randomUUID(),
-        });
-
-        const server = createYouTubeMcpServer();
-
-        transport.onclose = () => {
-            if (transport.sessionId) {
-                activeTransports.delete(transport.sessionId);
-            }
-        };
-
-        await server.connect(transport);
-
-        if (transport.sessionId) {
-            activeTransports.set(transport.sessionId, transport);
-        }
     } else {
-        res.status(404).json({ error: 'Session not found or expired' });
-        return;
+        // No session, stale/expired session, or fresh initialize — always create
+        // a new transport and let the SDK handle protocol-level validation.
+        // This prevents returning a bare 404 that clients misread as
+        // "Streamable HTTP not supported", which causes spurious SSE fallbacks.
+        transport = await createTransportSession();
     }
 
     await transport.handleRequest(req, res, req.body);
+
+    // After handling initialize, the transport gets its session ID.
+    // Store it so subsequent requests can find this transport.
+    if (transport.sessionId && !activeTransports.has(transport.sessionId)) {
+        activeTransports.set(transport.sessionId, transport);
+    }
 });
 
-// GET /mcp — optional SSE stream for server-initiated notifications
+// GET /mcp — SSE notification stream for an active session
 app.get('/mcp', async (req, res) => {
     setCorsHeaders(res);
 
@@ -132,13 +130,12 @@ app.delete('/mcp', async (req, res) => {
     activeTransports.delete(sessionId);
 });
 
-// Start server
 app.listen(PORT, () => {
-    console.log('🚀 YouTube MCP HTTP Server started!');
-    console.log(`📡 Server running on: http://localhost:${PORT}`);
-    console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔌 MCP endpoint: http://localhost:${PORT}/mcp`);
-    console.log(`✅ YouTube API Key: ${process.env.YOUTUBE_API_KEY ? 'Configured' : 'MISSING'}`);
+    console.log('YouTube MCP HTTP Server started');
+    console.log(`  Server:  http://localhost:${PORT}`);
+    console.log(`  Health:  http://localhost:${PORT}/health`);
+    console.log(`  MCP:     http://localhost:${PORT}/mcp`);
+    console.log(`  API Key: ${process.env.YOUTUBE_API_KEY ? 'configured' : 'MISSING'}`);
 });
 
 export { app };

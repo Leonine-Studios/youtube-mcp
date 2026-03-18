@@ -171,6 +171,7 @@ This project uses a **dual-architecture service-based design**:
 ```
 src/
 ├── server-utils.ts        # Shared MCP server utilities (single source of truth)
+├── http-server.ts        # HTTP/Docker deployment entry point (Streamable HTTP)
 ├── index.ts              # Smithery deployment entry point
 ├── server.ts             # CLI deployment entry point
 ├── services/             # Core business logic
